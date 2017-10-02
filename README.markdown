@@ -18,7 +18,7 @@ have any copyright over, or claim on, them.)
    [StrangeLoop]: <https://thestrangeloop.com/> "StrangeLoop Conference, St. Louis, MO"
    [PWLConf]: <https://pwlconf.org> "Papers We Love Conf, St. Louis, MO"
    [James Long]: <https://twitter.com/jlongster> "James Long (@jlongster) on Twitter"
-   [talk]: <https://pwlconf.org/2017/james-long/> "James Long's talk at PWLconf 2017"
+   [talk]: <https://pwlconf.org/2017/james-long/>
       "“My History with Papers”, a talk by James Long, at StrangeLoop 2017"
    [paper]: <http://scheme2006.cs.uchicago.edu/11-ghuloum.pdf>
       "“An Incremental Approach to Compiler Construction”, Abdulaziz Ghuloum, SFP'06"
