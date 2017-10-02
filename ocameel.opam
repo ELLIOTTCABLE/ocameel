@@ -1,0 +1,20 @@
+opam-version:  "1.2"
+
+name:          "ocameel"
+version:       "0.0.1"
+maintainer:    "ELLIOTTCABLE <me@ell.io>"
+license:       "ISC"
+
+homepage:      "https://github.com/ELLIOTTCABLE/ocameel"
+bug-reports:   "https://github.com/ELLIOTTCABLE/ocameel/issues"
+dev-repo:      "https://github.com/ELLIOTTCABLE/ocameel.git"
+
+build: [
+  ["jbuilder" "subst" "-n" name] {pinned}
+  ["jbuilder" "build" "-p" name "-j" jobs]
+]
+build-test: ["jbuilder" "build" "test/git"]
+
+depends: [
+  "jbuilder" {build}
+]
