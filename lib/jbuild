@@ -1,0 +1,8 @@
+(jbuild_version 1)
+
+(library
+ ((name        ocameel)
+  (public_name ocameel)
+  (libraries (core))
+  (preprocess (pps (ppx_jane)))
+))

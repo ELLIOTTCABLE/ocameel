@@ -1,0 +1,9 @@
+(jbuild_version 1)
+
+(executables
+ ((names (cli))
+  (libraries (ocameel))))
+
+(install
+ ((section bin)
+  (files ((cli.exe as ocameel)))))
