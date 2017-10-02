@@ -1,8 +1,8 @@
 A Bajillion Toy Schemes
 =======================
 At [StrangeLoop][] (well, really, [PWLconf][]) 2017, [James Long][] [introduced][talk] me to
-Abdulaziz Ghuloum's [An Incremental Approach to Compiler Construction][paper], an academic-
-whitepaper-formatted compiler-writing tutorial.
+Abdulaziz Ghuloum's [An Incremental Approach to Compiler Construction][paper], an
+academic-whitepaper-formatted compiler-writing tutorial.
 
 At the same time, I was refreshing my ML knowledge, picking up OCaml — and I thought it'd be fun,
 perhaps, to take a stab at following the IACC, but in ML instead of Scheme.
