@@ -10,7 +10,6 @@
 
 load test-helper
 
-echo "$PATH"
 assert command -v ocameel >/dev/null
 
 

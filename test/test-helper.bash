@@ -9,7 +9,7 @@ pathadd() {
       PATH="$1${PATH:+":$PATH"}"                ; fi ;}
 
 absolute() {
-   (cd "$(dirname '$1')" &>/dev/null && printf "%s/%s" "$PWD" "${1##*/}") ;}
+   (cd "$(dirname "$1")" &>/dev/null && printf "%s/%s" "$PWD" "${1##*/}") ;}
 
 pathadd "$(absolute './_build/install/default/bin')"
 
