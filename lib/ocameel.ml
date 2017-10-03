@@ -1,4 +1,7 @@
 open Core
 
-let print () =
-   Sexp.to_string_hum [%sexp ([3;4;5] : int list)]
+let read_source_from path =
+   Sexp.load_sexps path
+
+let rec print_source ?(channel = stdout) sexps =
+   Sexp.output_hum channel |> List.iter sexps
