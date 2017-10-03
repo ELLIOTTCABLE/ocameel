@@ -3,15 +3,18 @@ open Core
 
 let parse filename () =
    (  match filename with
-      | None | Some "-" -> Ocameel.input_source In_channel.stdin
-      | Some filename   -> Ocameel.load_source filename
+      | "-"       -> Ocameel.input_source In_channel.stdin
+      | filename  -> Ocameel.load_source filename
    ) |> Ocameel.print_source
 
 
 let command =
    Command.basic
       ~summary:"Run some Scheme code"
-      Command.Spec.(empty +> anon (maybe ("source-file" %: file)))
+      Command.Spec.(
+         empty
+         +> anon (maybe_with_default "-" ("filename" %: file))
+      )
       parse
 
 let () =
