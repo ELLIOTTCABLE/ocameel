@@ -14,11 +14,9 @@ assert command -v ocameel >/dev/null
 
 
 @test "integers: 0" {
-   program="$(tempfile)"
-   cat <<-PROGRAM >"$program.scm"
+   run ocameel <<-PROGRAM
 		0
 	PROGRAM
-   run ocameel "$program.scm"
 
    [ "$status" -eq 0 ]
    [ "$output" = "0" ]
