@@ -1,11 +1,11 @@
 open Core
 
 
-let parse filename () =
-   (  match filename with
+let do_parse files =
+   List.iter files (fun file -> (match file with
       | "-"       -> Ocameel.input_source In_channel.stdin
       | filename  -> Ocameel.load_source filename
-   ) |> Ocameel.print_source
+   ) |> Ocameel.print_source)
 
 
 let command =
@@ -13,9 +13,13 @@ let command =
       ~summary:"Run some Scheme code"
       Command.Spec.(
          empty
-         +> anon (maybe_with_default "-" ("filename" %: file))
+         +> anon (sequence ("filename" %: file))
       )
-      parse
+      (fun files () ->
+         match files with
+         | []     -> do_parse ["-"]
+         | files  -> do_parse files
+      )
 
 let () =
    Exn.handle_uncaught ~exit:true (fun () ->
