@@ -8,9 +8,9 @@ let do_parse files =
       ) |> Ocameel.print_source)
 
 
-let command =
+let parse =
    Command.basic
-      ~summary:"Run some Scheme code"
+      ~summary:"Output a stripped-and-formatted version of a provided Scheme file"
       Command.Spec.(
          empty
          +> anon (sequence ("filename" %: file))
@@ -23,5 +23,7 @@ let command =
 
 let () =
    Exn.handle_uncaught ~exit:true (fun () ->
-         Command.run ~version:"0.1" command
+         Command.group ~summary:"Interact with Scheme code"
+            [ "parse", parse ]
+         |> Command.run ~version:"0.1"
       )

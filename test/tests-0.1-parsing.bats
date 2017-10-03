@@ -13,19 +13,19 @@ load test-helper
 assert command -v ocameel >/dev/null
 
 
-@test "accepts: filename" {
+@test "parse: accepts file by name" {
    program="$(tempfile)"
    cat <<-PROGRAM >"$program.scm"
 		(test foo bar)
 	PROGRAM
-   run ocameel "$program.scm"
+   run ocameel parse "$program.scm"
 
    [ "$status" -eq 0 ]
    [ "$output" = "(test foo bar)" ]
 }
 
-@test "accepts: standard-input" {
-   run ocameel <<-PROGRAM
+@test "parse: accepts code on standard-input" {
+   run ocameel parse - <<-PROGRAM
 		(test foo bar)
 	PROGRAM
 
@@ -33,8 +33,8 @@ assert command -v ocameel >/dev/null
    [ "$output" = "(test foo bar)" ]
 }
 
-@test "parsing: integer" {
-   run ocameel - <<-PROGRAM
+@test "parse: parses an integer" {
+   run ocameel parse - <<-PROGRAM
 		0
 	PROGRAM
 
@@ -42,8 +42,8 @@ assert command -v ocameel >/dev/null
    [ "$output" = "0" ]
 }
 
-@test "parsing: s-exp" {
-   run ocameel - <<-PROGRAM
+@test "parse: handles an s-exp" {
+   run ocameel parse - <<-PROGRAM
 		(test foo bar)
 	PROGRAM
 
@@ -51,8 +51,8 @@ assert command -v ocameel >/dev/null
    [ "$output" = "(test foo bar)" ]
 }
 
-@test "parsing: multiple s-exps" {
-   run ocameel - <<-PROGRAM
+@test "parse: handles multiple s-exps" {
+   run ocameel parse - <<-PROGRAM
 		(test foo bar)
 		(test2 baz widget)
 	PROGRAM
@@ -62,8 +62,8 @@ assert command -v ocameel >/dev/null
    [ "${lines[1]}" = "(test2 baz widget)" ]
 }
 
-@test "parsing: a real program" {
-   run ocameel - <<-PROGRAM
+@test "parse: handles a real program" {
+   run ocameel parse - <<-PROGRAM
 		(import (list-tools setops) (more-setops) (rnrs))
 		(define-syntax pr
 		  (syntax-rules ()
@@ -92,4 +92,37 @@ assert command -v ocameel >/dev/null
 
    [ "$status" -eq 0 ]
    [ "${lines[0]}" = "(import (list-tools setops) (more-setops) (rnrs))" ]
+}
+
+@test "parse: accepts multiple files" {
+   program1="$(tempfile)"
+   cat <<-PROGRAM >"$program1.scm"
+		(test foo bar)
+	PROGRAM
+
+   program2="$(tempfile)"
+   cat <<-PROGRAM >"$program2.scm"
+		(test2 baz widget)
+	PROGRAM
+
+   run ocameel parse "$program1.scm" "$program2.scm"
+
+   [ "$status" -eq 0 ]
+   [ "${lines[0]}" = "(test foo bar)" ]
+   [ "${lines[1]}" = "(test2 baz widget)" ]
+}
+
+@test "parse: accepts stdin alongside a file" {
+   program="$(tempfile)"
+   cat <<-PROGRAM >"$program.scm"
+		(test2 baz widget)
+	PROGRAM
+
+   run ocameel parse - "$program.scm" <<-PROGRAM
+		(test foo bar)
+	PROGRAM
+
+   [ "$status" -eq 0 ]
+   [ "${lines[0]}" = "(test foo bar)" ]
+   [ "${lines[1]}" = "(test2 baz widget)" ]
 }
