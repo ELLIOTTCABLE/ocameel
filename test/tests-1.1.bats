@@ -10,16 +10,16 @@
 
 load test-helper
 
+echo "$PATH"
+assert command -v ocameel >/dev/null
 
-@test "exists" {
-   ocameel
-}
 
 @test "integers: 0" {
-   cat <<-PROGRAM >program.scm
+   program="$(tempfile)"
+   cat <<-PROGRAM >"$program.scm"
 		0
 	PROGRAM
-   run ocameel program.scm
+   run ocameel "$program.scm"
 
    [ "$status" -eq 0 ]
    [ "$output" = "0" ]

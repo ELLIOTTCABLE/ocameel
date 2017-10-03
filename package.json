@@ -1,0 +1,17 @@
+{
+  "name": "ocameel",
+  "version": "0.1.0",
+  "private": true,
+  "author": "ELLIOTTCABLE <me@ell.io>",
+  "license": "ISC",
+  "homepage": "https://github.com/ELLIOTTCABLE/ocameel#readme",
+  "repository": "git+https://github.com/ELLIOTTCABLE/ocameel.git",
+  "bugs": "https://github.com/ELLIOTTCABLE/ocameel/issues",
+  "scripts": {
+    "test": "bats test/*.bats"
+  },
+  "devDependencies": {
+    "bats-assert": "git+https://github.com/ztombol/bats-assert.git",
+    "bats-support": "git+https://github.com/ztombol/bats-support.git"
+  }
+}
