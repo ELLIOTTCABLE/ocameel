@@ -1,7 +1,7 @@
 (jbuild_version 1)
 
-(executables
- ((names (cli))
+(executable
+ ((name cli)
   (libraries (ocameel))))
 
 (install
