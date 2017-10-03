@@ -8,6 +8,8 @@
   "repository": "git+https://github.com/ELLIOTTCABLE/ocameel.git",
   "bugs": "https://github.com/ELLIOTTCABLE/ocameel/issues",
   "scripts": {
+    "clean": "jbuilder clean",
+    "prepare": "jbuilder build @install",
     "test": "bats test/*.bats"
   },
   "devDependencies": {
