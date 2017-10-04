@@ -14,7 +14,7 @@ assert command -v ocameel >/dev/null
 
 
 @test "integers: 0" {
-   run ocameel <<-PROGRAM
+   run ocameel compile <<-PROGRAM
 		0
 	PROGRAM
 
