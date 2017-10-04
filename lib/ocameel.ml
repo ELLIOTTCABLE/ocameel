@@ -13,11 +13,18 @@ let print_source ?(channel = stdout) sexps =
 
 
 let rec compile_program sexps channel =
-   let entry =  Printf.sprintf ("_scheme_entry:") in
-   let return = Printf.sprintf ("ret") in
-   Out_channel.output_lines channel [entry] ;
+   Out_channel.output_lines channel [
+      Printf.sprintf (".text") ;
+      Printf.sprintf (".align 4,0x90") ;
+      Printf.sprintf (".globl _scheme_entry") ;
+      Printf.sprintf ("_scheme_entry:")
+   ] ;
+
    compile_list sexps channel ;
-   Out_channel.output_lines channel [return]
+
+   Out_channel.output_lines channel [
+      Printf.sprintf ("ret")
+   ]
 
 and compile_sexp sexp channel =
    match sexp with
