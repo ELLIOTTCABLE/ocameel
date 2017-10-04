@@ -27,11 +27,11 @@ let parse =
 
 let do_compile files =
    List.iter files (fun file ->
-      let source = (match file with
-         | "-"       -> Ocameel.input_source In_channel.stdin
-         | filename  -> Ocameel.load_source filename
-      ) in
-      Ocameel.compile_list source stdout)
+         let source = (match file with
+               | "-"       -> Ocameel.input_source In_channel.stdin
+               | filename  -> Ocameel.load_source filename
+            ) in
+         Ocameel.compile_program source stdout)
 
 let compile =
    Command.basic
