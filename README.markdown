@@ -25,3 +25,27 @@ have any copyright over, or claim on, them.)
 
    [1]: <https://github.com/tadruj/SCHEMana-ocaml>
    [2]: <https://github.com/dvanhorn/ubik>
+
+
+“Usage”
+-------
+This is useless. But hey.
+
+    brew install opam && \
+       opam init && \
+       eval `opam config env`
+
+    opam install core jbuilder
+
+    npm run-script prepare
+
+    ./_build/install/default/bin/ocameel --help
+    ./_build/install/default/bin/ocameel -o - -S - <<PROG
+    42
+    PROG
+
+   ./_build/install/default/bin/ocameel - <<PROG
+   42
+   PROG
+
+(Yes. It literally only compiles the number ‘42.’ Told you it was useless.)
