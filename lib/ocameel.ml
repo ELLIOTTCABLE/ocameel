@@ -45,5 +45,5 @@ and compile_atom str channel =
 
 and compile_int str channel =
    let i = int_of_string str in
-   let instr = Printf.sprintf ("movl $%i %%eax") i in
+   let instr = Printf.sprintf ("movl $%i, %%eax") i in
    Out_channel.output_lines channel [instr]
