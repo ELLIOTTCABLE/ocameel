@@ -40,13 +40,12 @@ This is useless. But hey.
     npm run-script prepare
 
     ./_build/install/default/bin/ocameel --help
-    ./_build/install/default/bin/ocameel -o - -S - <<PROG
-    42
-    PROG
+    ./_build/install/default/bin/ocameel -o - -S - <<<"42"
 
-    ./_build/install/default/bin/ocameel - <<PROG
-    42
-    PROG
+    ./_build/install/default/bin/ocameel -o answer.s -S - <<<"42"
+    gcc -c src/runtime.c
+    gcc -o answer ./omg.o ./runtime.o
+    ./answer
 
 (Yes. It literally only compiles the number ‘42.’ Told you it was useless.)
 
