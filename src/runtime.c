@@ -1,9 +1,12 @@
 #include <stdio.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 
 /* a simple driver for scheme_entry */
-extern int scheme_entry(void);
+extern intptr_t scheme_entry(void);
 
 int main(int argc, char** argv){
-  printf("%d\n", scheme_entry());
-return 0; }
+   printf("%" PRIdPTR "\n", scheme_entry());
+   return 0;
+}

@@ -31,7 +31,14 @@ let do_stages stage files output =
    match stage with
    | Parsing      -> do_parse files output
    | Compilation  -> do_compile files output
-   | Assembly     -> failwith "NYI: invoking assembler"
+
+   (* FIXME: error handling *)
+   (* FIXME: argument quoting *)
+   | Assembly     ->
+         failwith "NYI: invoking assembler"
+         (* do_compile files output ; *)
+         (* Unix.execvp "gcc" [| "-o"; output |] *)
+
    | Linking      -> failwith "NYI: invoking linker"
 
 let command =

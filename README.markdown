@@ -44,8 +44,11 @@ This is useless. But hey.
     42
     PROG
 
-   ./_build/install/default/bin/ocameel - <<PROG
-   42
-   PROG
+    ./_build/install/default/bin/ocameel - <<PROG
+    42
+    PROG
 
 (Yes. It literally only compiles the number ‘42.’ Told you it was useless.)
+
+Of note, I've only tested this on macOS — there's some `system` calls that almost certainly need to
+be re-written for a Linux. Should only be a minor effort.
