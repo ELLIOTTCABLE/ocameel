@@ -6,24 +6,30 @@ type stage = Parsing | Compilation | Assembly | Linking
 let do_parse files output =
    let out_channel = match output with
       | "-"       -> stdout
-      | filename  -> Out_channel.create (filename ^ ".scm")
+      | out_file  -> Out_channel.create (out_file ^ ".scm")
    in
-   List.iter files (fun file -> (match file with
+   List.iter files (fun in_file -> (match in_file with
          | "-"       -> Ocameel.input_source In_channel.stdin
-         | filename  -> Ocameel.load_source filename )
-                                |> Ocameel.print_source ~channel:out_channel )
+         | in_file   -> Ocameel.load_source in_file )
+                                   |> Ocameel.print_source ~channel:out_channel ) ;
+   Out_channel.close out_channel
 
 let do_compile files output =
    let out_channel = match output with
       | "-"       -> stdout
-      | filename  -> Out_channel.create filename
-   in
-   List.iter files (fun file ->
-         let source = (match file with
-               | "-"       -> Ocameel.input_source In_channel.stdin
-               | filename  -> Ocameel.load_source filename)
-         in
-         Ocameel.compile_program source out_channel )
+      | out_file  -> Out_channel.create (out_file ^ ".s")
+   in match files with
+
+   | [ in_file ] ->
+     let source = (match in_file with
+           | "-"     -> Ocameel.input_source In_channel.stdin
+           | in_file -> Ocameel.load_source in_file)
+     in
+     Ocameel.compile_program source out_channel ;
+     Out_channel.close out_channel
+
+   | _ ->
+     failwith "NYI: multiple input files"
 
 (* --------------------------- *)
 
@@ -35,9 +41,11 @@ let do_stages stage files output =
    (* FIXME: error handling *)
    (* FIXME: argument quoting *)
    | Assembly     ->
-         failwith "NYI: invoking assembler"
-         (* do_compile files output ; *)
-         (* Unix.execvp "gcc" [| "-o"; output |] *)
+     do_compile files output ;
+     ignore (Unix.exec ~use_path: true
+                ~prog: "gcc"
+                ~argv: [ "gcc" ; "-o" ; output ; (output ^ ".s") ; "runtime.o"  ]
+                () )
 
    | Linking      -> failwith "NYI: invoking linker"
 
@@ -45,18 +53,18 @@ let command =
    let spec = Command.Spec.(
          empty
          +> flag "-E"
-               no_arg ~doc:"boolean Only invoke the parser (effectively pretty-printing and \
+               no_arg ~doc:"Only invoke the parser (effectively pretty-printing and \
                             concatenating the input files)"
 
          +> flag "-S"
-               no_arg ~doc:"boolean Only compile an assembly file (overrides -E)"
+               no_arg ~doc:"Only compile an assembly file (overrides -E)"
 
          +> flag "-c"
-               no_arg ~doc:"boolean Compile, then invoke the assembler; generating a target .o \
+               no_arg ~doc:"Compile, then invoke the assembler; generating a target .o \
                             object-file (overrides -E, -S)"
 
          +> flag "-o"
-               (optional file) ~doc:" Output filename (will be appended with an appropriate \
+               (optional file) ~doc:"output-name (Will be appended with an appropriate \
                                      suffix, based on the chosen stage)"
 
          (* +> flag "-d" (optional_with_default false bool) ~doc:" Debug mode" *)
