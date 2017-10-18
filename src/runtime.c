@@ -4,9 +4,9 @@
 
 
 /* a simple driver for scheme_entry */
-extern intptr_t scheme_entry(void);
+extern int32_t scheme_entry(void);
 
 int main(int argc, char** argv){
-   printf("%" PRIdPTR "\n", scheme_entry());
+   printf("%" PRId32 "\n", scheme_entry());
    return 0;
 }
