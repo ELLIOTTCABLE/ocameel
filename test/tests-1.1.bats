@@ -23,3 +23,25 @@ assert command -v ocameel >/dev/null
    [ "$status" -eq 0 ]
    [ "$output" = "0" ]
 }
+
+@test "integers: 1" {
+   executable="$(tempfile)"
+   ocameel -o "$executable" - <<-PROGRAM
+		1
+	PROGRAM
+
+   run "$executable"
+   [ "$status" -eq 0 ]
+   [ "$output" = "1" ]
+}
+
+@test "integers: -1" {
+   executable="$(tempfile)"
+   ocameel -o "$executable" - <<-PROGRAM
+		-1
+	PROGRAM
+
+   run "$executable"
+   [ "$status" -eq 0 ]
+   [ "$output" = "-1" ]
+}
