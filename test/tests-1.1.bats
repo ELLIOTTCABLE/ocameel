@@ -45,3 +45,69 @@ assert command -v ocameel >/dev/null
    [ "$status" -eq 0 ]
    [ "$output" = "-1" ]
 }
+
+@test "integers: 10" {
+   executable="$(tempfile)"
+   ocameel -o "$executable" - <<-PROGRAM
+		10
+	PROGRAM
+
+   run "$executable"
+   [ "$status" -eq 0 ]
+   [ "$output" = "10" ]
+}
+
+@test "integers: -10" {
+   executable="$(tempfile)"
+   ocameel -o "$executable" - <<-PROGRAM
+		-10
+	PROGRAM
+
+   run "$executable"
+   [ "$status" -eq 0 ]
+   [ "$output" = "-10" ]
+}
+
+@test "integers: 2736" {
+   executable="$(tempfile)"
+   ocameel -o "$executable" - <<-PROGRAM
+		2736
+	PROGRAM
+
+   run "$executable"
+   [ "$status" -eq 0 ]
+   [ "$output" = "2736" ]
+}
+
+@test "integers: -2736" {
+   executable="$(tempfile)"
+   ocameel -o "$executable" - <<-PROGRAM
+		-2736
+	PROGRAM
+
+   run "$executable"
+   [ "$status" -eq 0 ]
+   [ "$output" = "-2736" ]
+}
+
+@test "integers: 536870911" {
+   executable="$(tempfile)"
+   ocameel -o "$executable" - <<-PROGRAM
+		536870911
+	PROGRAM
+
+   run "$executable"
+   [ "$status" -eq 0 ]
+   [ "$output" = "536870911" ]
+}
+
+@test "integers: -536870911" {
+   executable="$(tempfile)"
+   ocameel -o "$executable" - <<-PROGRAM
+		-536870911
+	PROGRAM
+
+   run "$executable"
+   [ "$status" -eq 0 ]
+   [ "$output" = "-536870911" ]
+}
