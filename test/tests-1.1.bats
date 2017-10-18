@@ -14,10 +14,12 @@ assert command -v ocameel >/dev/null
 
 
 @test "integers: 0" {
-   run ocameel compile <<-PROGRAM
+   executable="$(tempfile)"
+   ocameel -o "$executable" - <<-PROGRAM
 		0
 	PROGRAM
 
+   run "$executable"
    [ "$status" -eq 0 ]
    [ "$output" = "0" ]
 }
