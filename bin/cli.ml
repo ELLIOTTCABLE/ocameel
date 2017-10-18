@@ -38,16 +38,15 @@ let do_stages stage files output =
    | Parsing      -> do_parse files output
    | Compilation  -> do_compile files output
 
+   | Assembly     -> failwith "NYI: invoking linker"
+
    (* FIXME: error handling *)
-   (* FIXME: argument quoting *)
-   | Assembly     ->
+   | Linking      ->
      do_compile files output ;
      ignore (Unix.exec ~use_path: true
                 ~prog: "gcc"
                 ~argv: [ "gcc" ; "-o" ; output ; (output ^ ".s") ; "runtime.o"  ]
                 () )
-
-   | Linking      -> failwith "NYI: invoking linker"
 
 let command =
    let spec = Command.Spec.(
