@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# vim: set expandtab sw=3 sts=3 tabstop=3 list listchars=tab:\ ⎯
+# vim: set expandtab sw=3 sts=3 tabstop=3 listchars=tab\:\ ⎯ list:
 # ----
 # This file contains hard-tabs. Intentionally. (Thanks, Bash.)
 #
