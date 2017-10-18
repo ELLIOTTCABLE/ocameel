@@ -7,6 +7,6 @@
 extern int32_t scheme_entry(void);
 
 int main(int argc, char** argv){
-   printf("%" PRId32 "\n", scheme_entry());
+   printf("%" PRId32"\n", scheme_entry());
    return 0;
 }

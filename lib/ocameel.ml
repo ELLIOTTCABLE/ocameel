@@ -39,8 +39,10 @@ and compile_list sexps channel =
    | hd :: tl  -> failwith "NYI: multiple atoms"
 
 and compile_atom str channel =
+   (* TODO: Radix and exactness prefixes (`#e1e10`) *)
+   (* FIXME: `-` needs to be a unary operation, I think? *)
    match str.[0] with
-   | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ->
+   | '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ->
      compile_int str channel
    | _ -> failwith "NYI: everything else"
 
