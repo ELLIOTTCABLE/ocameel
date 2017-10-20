@@ -4,16 +4,6 @@ load test-helper
 
 assert command -v ocameel >/dev/null
 
-compile-and-exec() {
-   exec 3<&0
-   executable="$(tempfile)"
-
-   ocameel - <&3 -o "$executable"
-   exec 3<&-
-
-   "$executable" "$@"
-}
-
 
 @test "integers: 0" {
    run compile-and-exec <<<"0"

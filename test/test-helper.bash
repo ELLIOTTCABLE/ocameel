@@ -17,3 +17,15 @@ contains() { [ -z "${1##*$2*}" ] && [ -z "$2" -o -n "$1" ] ;}
 
 tempfile() { mktemp    "$BATS_TMPDIR/${BATS_TEST_NAME}.XXXX" ;}
 tempdir()  { mktemp -d "$BATS_TMPDIR/${BATS_TEST_NAME}.XXXX" ;}
+
+
+# ### Ocameel-specific
+compile-and-exec() {
+   exec 3<&0
+   executable="$(tempfile)"
+
+   ocameel - <&3 -o "$executable"
+   exec 3<&-
+
+   "$executable" "$@"
+}

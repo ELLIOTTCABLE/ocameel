@@ -14,12 +14,8 @@ assert command -v ocameel >/dev/null
 
 
 @test "immediate constants: #f" {
-   executable="$(tempfile)"
-   ocameel -o "$executable" - <<-PROGRAM
-		#f
-	PROGRAM
+   run compile-and-exec <<<"#f"
 
-   run "$executable"
    [ "$status" -eq 0 ]
    [ "$output" = "#f" ]
 }
