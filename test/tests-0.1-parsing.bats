@@ -12,12 +12,20 @@ load test-helper
 
 assert command -v ocameel >/dev/null
 
+parse() {
+   exec 3<&0
+
+   ocameel -E - <&3 -o -
+   exec 3<&-
+}
+
 
 @test "parse: accepts file by name" {
    program="$(tempfile)"
    cat <<-PROGRAM >"$program.scm"
 		(test foo bar)
 	PROGRAM
+
    run ocameel -o - -E "$program.scm"
 
    [ "$status" -eq 0 ]
@@ -34,25 +42,21 @@ assert command -v ocameel >/dev/null
 }
 
 @test "parse: parses an integer" {
-   run ocameel -o - -E - <<-PROGRAM
-		0
-	PROGRAM
+   run parse <<<"0"
 
    [ "$status" -eq 0 ]
    [ "$output" = "0" ]
 }
 
 @test "parse: handles an s-exp" {
-   run ocameel -o - -E - <<-PROGRAM
-		(test foo bar)
-	PROGRAM
+   run parse <<<"(test foo bar)"
 
    [ "$status" -eq 0 ]
    [ "$output" = "(test foo bar)" ]
 }
 
 @test "parse: handles multiple s-exps" { skip
-   run ocameel -o - -E - <<-PROGRAM
+   run parse <<-PROGRAM
 		(test foo bar)
 		(test2 baz widget)
 	PROGRAM
@@ -63,7 +67,7 @@ assert command -v ocameel >/dev/null
 }
 
 @test "parse: handles a real program" { skip
-   run ocameel -o - -E - <<-PROGRAM
+   run parse <<-PROGRAM
 		(import (list-tools setops) (more-setops) (rnrs))
 		(define-syntax pr
 		  (syntax-rules ()
