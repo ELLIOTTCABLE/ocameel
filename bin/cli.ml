@@ -71,7 +71,7 @@ let command =
          +> anon (sequence ("filename" %: file)) )
    in
 
-   Command.basic
+   Command.basic_spec
       ~summary:"Compile some Scheme code to x86 assembly"
       ~readme:(fun () ->
             "By default, the compiler invokes both the assembler and the linker, producing an
