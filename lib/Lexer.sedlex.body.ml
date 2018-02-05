@@ -1,6 +1,5 @@
-
 (* Mostly cribbed from Steffen Smolka's 2017 ocaml-parsing boilerplate:
- *    <https://github.com/smolkaj/ocaml-parsing> *)
+      <https://github.com/smolkaj/ocaml-parsing> *)
 
 (* use custom lexbuffer to keep track of source location *)
 module Sedlexing = LexBuffer
