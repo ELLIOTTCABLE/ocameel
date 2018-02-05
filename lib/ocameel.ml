@@ -8,7 +8,7 @@ let load_source path =
 
 let print_source ?(channel = stdout) sexps =
    let formatter = Format.formatter_of_out_channel channel in
-   Sexp.pp_hum formatter |> List.iter sexps ;
+   List.iter ~f:(fun (sexp) -> Sexp.pp_hum formatter sexp) sexps ;
    Format.pp_print_flush formatter () ;
    Out_channel.newline channel
 
