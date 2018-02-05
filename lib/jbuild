@@ -1,8 +1,67 @@
 (jbuild_version 1)
 
+;; ### Parser: Extract tokens from the `Parser` module
+(rule
+ ((targets (Tokens.ml))
+  (deps    (Parser.mly))
+  (action  (run ${bin:menhir} --only-tokens ${<} --base Tokens))
+  (mode promote-until-clean)))
+
+;; ### Parser: Generate the `Lexer` module
+;; This depends on a horrible hack, adapted from the approach in Steffen Smolka's boilerplate:
+;;    <https://github.com/smolkaj/ocaml-parsing>
+;;
+;; It revolves on these facts:
+;;  - Both `Lexer.ml` and `Lexer.mli` need access to the `token` type;
+;;  - that type needs ppx_deriving plugins like `show` and `enumerate`;
+;;  - and ppx_deriving annotations must be attached to the AST node *where the type is fully
+;;    defined*, i.e. we can't behave normally, defining the type in the `.mli`, and then allowing it
+;;    to simply be inferred in the `.ml`.
+;;
+;; To work around this, we generate the definition of the `token` type in a separate, fake module,
+;; `Tokens`. We then *prepend* that definition onto both `Lexer.ml` and `Lexer.mli`, finally
+;; appending the ppx_deriving declarations onto the generated `token` type.
+;;
+;; (One downside: The non-preprocessed files, `Lexer.body.mli` and `Lexer.sedlex.body.ml`, don't
+;; make any sense standing on their own; they depend, silently, on a non-existent `token` type.
+;; Merlin, in particular, will flip the table over this. This can be worked around by pre-generating
+;; the `token` type with `jbuilder build lib/Tokens.ml`, and then opening it in the file you're
+;; editing with `open Tokens`. Just make sure not to accidentally commit the additional line! ;)
+(rule
+ ((targets (Lexer.sedlex.ml))
+  (deps    (Lexer.sedlex.body.ml Tokens.ml))
+  (action  (with-stdout-to Lexer.sedlex.ml
+    (progn (cat Tokens.ml)
+           (echo "      [@@deriving show]\n\n")
+           (cat Lexer.sedlex.body.ml))))))
+
+(rule
+ ((targets (Lexer.mli))
+  (deps    (Lexer.body.mli Tokens.ml))
+  (action  (with-stdout-to Lexer.mli
+    (progn (cat Tokens.ml)
+           (echo "      [@@deriving show]\n\n")
+           (cat Lexer.body.mli))))))
+
+(rule
+ ((targets (Lexer.ml))
+  (deps    (Lexer.sedlex.ml))
+  (action  (run ${lib:sedlex:ppx_sedlex} ${<} -o ${@}))))
+
+;; ### Parser: Finally, generate the `Parser` module itself
+(menhir
+ ((modules (Parser))
+  (flags (--external-tokens Lexer))))
+
+;; ### Library
 (library
  ((name        ocameel)
   (public_name ocameel)
-  (libraries (core))
-  (preprocess (pps (ppx_jane)))
-))
+  (libraries
+    (core
+     sedlex
+     compiler-libs.common
+     menhirLib)
+  )
+  (virtual_deps (menhir))
+  (preprocess (pps (ppx_deriving.std)))))

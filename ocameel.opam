@@ -7,8 +7,11 @@ license: "ISC"
 homepage: "https://github.com/ELLIOTTCABLE/ocameel"
 bug-reports: "https://github.com/ELLIOTTCABLE/ocameel/issues"
 depends: [
-  "jbuilder" {build}
-  "core"
+  "jbuilder" {>="1.0+beta17" & build}
+  "core" {>= "0.10.0"}
+  "ppx_deriving"
+  "sedlex"
+  "menhir"
 ]
 build: [
   ["jbuilder" "subst" "-n" name] {pinned}
