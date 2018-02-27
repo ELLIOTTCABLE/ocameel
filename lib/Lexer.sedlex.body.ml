@@ -21,7 +21,7 @@ let _ =
          | ParseError (token, loc_start, loc_end) ->
            let loc = Location.{ loc_start; loc_end; loc_ghost = false} in
            let msg =
-              show_token token
+              (* show_token token *) failwith "nyi"
               |> Printf.sprintf "parse error while reading token '%s'" in
            Some { loc; msg; sub=[]; if_highlight=""; }
          | _ -> None)
@@ -35,40 +35,36 @@ let illegal buf c =
    |> failwith buf
 
 (* regular expressions  *)
-let letter = [%sedlex.regexp? 'A'..'Z' | 'a'..'z']
-let digit = [%sedlex.regexp? '0'..'9']
-let id_init = [%sedlex.regexp? letter  | '_']
-let id_cont = [%sedlex.regexp? id_init | Chars ".\'" | digit ]
-let id = [%sedlex.regexp? id_init, Star id_cont ]
-let hex = [%sedlex.regexp? digit | 'a'..'f' | 'A'..'F' ]
-let hexnum = [%sedlex.regexp? '0', 'x', Plus hex ]
-let decnum = [%sedlex.regexp? Plus digit]
-let decbyte = [%sedlex.regexp? (digit,digit,digit) | (digit,digit) | digit ]
-let hexbyte = [%sedlex.regexp? hex,hex ]
-let blank = [%sedlex.regexp? ' ' | '\t' ]
+(* let letter = [%sedlex.regexp? 'A'..'Z' | 'a'..'z'] *)
+(* let digit = [%sedlex.regexp? '0'..'9'] *)
+(* let id_init = [%sedlex.regexp? letter  | '_'] *)
+(* let id_cont = [%sedlex.regexp? id_init | Chars ".\'" | digit ] *)
+(* let id = [%sedlex.regexp? id_init, Star id_cont ] *)
+(* let hex = [%sedlex.regexp? digit | 'a'..'f' | 'A'..'F' ] *)
+(* let hexnum = [%sedlex.regexp? '0', 'x', Plus hex ] *)
+(* let decnum = [%sedlex.regexp? Plus digit] *)
+(* let decbyte = [%sedlex.regexp? (digit,digit,digit) | (digit,digit) | digit ] *)
+(* let hexbyte = [%sedlex.regexp? hex,hex ] *)
 let newline = [%sedlex.regexp? '\r' | '\n' | "\r\n" ]
+let whitespace = [%sedlex.regexp? ' ' | newline ]
 
-(* swallows whitespace and comments *)
-let rec garbage buf =
+(** Swallow whitespace and comments. *)
+let rec swallow_garbage buf =
    match%sedlex buf with
-   | newline -> garbage buf
-   | Plus blank -> garbage buf
-   | "(*" -> comment 1 buf
+   | Plus whitespace -> swallow_garbage buf
+   | ";" -> swallow_comment buf
    | _ -> ()
 
-(* allow nested comments, like OCaml *)
-and comment depth buf =
-   if depth = 0 then garbage buf else
-      match%sedlex buf with
-      | eof -> failwith buf "Unterminated comment at EOF"
-      | "(*" -> comment (depth + 1) buf
-      | "*)" -> comment (depth - 1) buf
-      | any -> comment depth buf
-      | _ -> assert false
+and swallow_comment buf =
+   match%sedlex buf with
+ (*| eof -> failwith buf "Unterminated comment at EOF"*)
+   | newline -> swallow_garbage buf
+   | any -> swallow_comment buf
+   | _ -> assert false
 
 (* returns the next token *)
 let token buf =
-   garbage buf;
+   swallow_garbage buf;
    match%sedlex buf with
    | eof -> EOF
    (* parenths *)
@@ -79,7 +75,7 @@ let token buf =
 
 (* wrapper around `token` that records start and end locations *)
 let loc_token buf =
-   let () = garbage buf in (* dispose of garbage before recording start location *)
+   let () = swallow_garbage buf in (* dispose of garbage before recording start location *)
    let loc_start = next_loc buf in
    let t = token buf in
    let loc_end = next_loc buf in
