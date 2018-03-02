@@ -51,7 +51,7 @@
 ;; ### Parser: Finally, generate the `ParserAutomaton` module itself
 (menhir
  ((modules (ParserAutomaton))
-  (flags (--external-tokens Lexer))))
+  (flags (--log-automaton 1 --log-code 1 --log-grammar 1 --trace --external-tokens Lexer))))
 
 ;; ### Library
 (library

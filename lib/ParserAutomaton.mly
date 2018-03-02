@@ -10,20 +10,16 @@
 (* %token <int> NUM10 *)
 (* %token <string> STREL *)
 
-%start <unit> ast_eof
+%start <Parser.AST.t> program
 
 %%
 (*** Rules ***)
 
-ast_eof:
-  | ast; EOF { () }
+program:
+  | p = list(expression); EOF { p }
   ;
 
-ast:
-  | list(nested) { () }
-
-nested:
-  | LPAR; ast; RPAR { () }
-  ;
+expression:
+  | i = IDENTIFIER { Parser.AST.Atom i }
 
 %%

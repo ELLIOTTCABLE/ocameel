@@ -3,10 +3,10 @@ open Core
 module Parser = Parser
 
 let input_source channel : Parser.AST.t =
-   Parser.Utf8.parse_channel channel ParserAutomaton.entry
+   Parser.Utf8.parse_channel channel ParserAutomaton.program
 
 let load_source path : Parser.AST.t =
-   Parser.Utf8.parse_file ~file:path ParserAutomaton.entry
+   Parser.Utf8.parse_file ~file:path ParserAutomaton.program
 
 let print_source ?(channel = stdout) sexps =
    let formatter = Format.formatter_of_out_channel channel in
