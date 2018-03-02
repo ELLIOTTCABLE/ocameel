@@ -51,22 +51,22 @@ let newline = [%sedlex.regexp? '\r' | '\n' | "\r\n" ]
 let whitespace = [%sedlex.regexp? ' ' | newline ]
 
 (** Swallow whitespace and comments. *)
-let rec swallow_garbage buf =
+let rec swallow_atmosphere buf =
    match%sedlex buf with
-   | Plus whitespace -> swallow_garbage buf
+   | Plus whitespace -> swallow_atmosphere buf
    | ";" -> swallow_comment buf
    | _ -> ()
 
 and swallow_comment buf =
    match%sedlex buf with
  (*| eof -> failwith buf "Unterminated comment at EOF"*)
-   | newline -> swallow_garbage buf
+   | newline -> swallow_atmosphere buf
    | any -> swallow_comment buf
    | _ -> assert false
 
 (* returns the next token *)
 let token buf =
-   swallow_garbage buf;
+   swallow_atmosphere buf;
    match%sedlex buf with
    | eof -> EOF
    (* parenths *)
@@ -77,7 +77,7 @@ let token buf =
 
 (* wrapper around `token` that records start and end locations *)
 let loc_token buf =
-   let () = swallow_garbage buf in (* dispose of garbage before recording start location *)
+   let () = swallow_atmosphere buf in (* dispose of garbage before recording start location *)
    let loc_start = next_loc buf in
    let t = token buf in
    let loc_end = next_loc buf in
