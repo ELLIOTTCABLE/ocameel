@@ -1,8 +1,7 @@
-type ('token, 'a) parser =
-  (Lexing.lexbuf -> 'token) -> Lexing.lexbuf -> 'a
+type wrapped_token = token * Lexing.position * Lexing.position
 
-val parse : LexBuffer.t -> (token,'a) parser -> 'a
+(** Signals a lexing error at the provided source location.  *)
+exception LexError of (Lexing.position * string)
 
-val parse_string : ?pos:Lexing.position -> string  -> (token,'a) parser -> 'a
-
-val parse_file : file:string -> (token,'a) parser -> 'a
+val token : LexBuffer.t -> token
+val loc_token : LexBuffer.t -> wrapped_token

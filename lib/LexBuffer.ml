@@ -18,7 +18,7 @@ type t = {
   mutable last_char_mark : int option;
 }
 
-let of_sedlex ?(file="<n/a>") ?pos buf =
+let from_sedlex ?(file="<n/a>") ?pos buf =
   let pos = Option.value pos ~default:Lexing.{
     pos_fname = file;
     pos_lnum = 1; (* line number *)
@@ -27,12 +27,6 @@ let of_sedlex ?(file="<n/a>") ?pos buf =
   in
   {  buf; pos; start = pos; pos_mark = pos; last_char = None; last_char_mark = None; }
 
-let of_ascii_string ?pos s =
-  of_sedlex ?pos Sedlexing.(Latin1.from_string s)
-
-let of_ascii_file file =
-  let chan = In_channel.create file in
-  of_sedlex ~file Sedlexing.(Latin1.from_channel chan)
 
 (** The next four functions are used by sedlex internally.
     See https://www.lexifi.com/sedlex/libdoc/Sedlexing.html.  *)
@@ -83,6 +77,36 @@ let rollback lexbuf =
 let raw lexbuf : int array =
   Sedlexing.lexeme lexbuf.buf
 
-let ascii ?(skip=0) ?(drop=0) lexbuf : string =
-  let len = Sedlexing.(lexeme_length lexbuf.buf - skip - drop) in
-  Sedlexing.(Latin1.sub_lexeme lexbuf.buf skip len)
+
+module Utf8 : sig
+   val lexeme : ?skip:int -> ?drop:int -> t -> string
+   val from_string : ?pos:Lexing.position -> string -> t
+   val from_channel : Pervasives.in_channel -> t
+end = struct
+   let lexeme ?(skip=0) ?(drop=0) lexbuf : string =
+      let len = Sedlexing.lexeme_length lexbuf.buf - skip - drop in
+      Sedlexing.Utf8.sub_lexeme lexbuf.buf skip len
+
+   let from_string ?pos s =
+      from_sedlex ?pos Sedlexing.(Utf8.from_string s)
+
+   let from_channel c =
+      from_sedlex Sedlexing.(Utf8.from_channel c)
+end
+
+
+module Ascii : sig
+   val lexeme : ?skip:int -> ?drop:int -> t -> string
+   val from_string : ?pos:Lexing.position -> string -> t
+   val from_channel : Pervasives.in_channel -> t
+end = struct
+   let lexeme ?(skip=0) ?(drop=0) lexbuf : string =
+      let len = Sedlexing.lexeme_length lexbuf.buf - skip - drop in
+      Sedlexing.Latin1.sub_lexeme lexbuf.buf skip len
+
+   let from_string ?pos s =
+      from_sedlex ?pos Sedlexing.(Latin1.from_string s)
+
+   let from_channel c =
+      from_sedlex Sedlexing.(Latin1.from_channel c)
+end

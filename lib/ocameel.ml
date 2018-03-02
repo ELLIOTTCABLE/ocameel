@@ -1,10 +1,12 @@
 open Core
 
-let input_source channel =
-   Sexp.input_sexps channel
+module Parser = Parser
 
-let load_source path =
-   Sexp.load_sexps path
+let input_source channel : Parser.AST.t =
+   Parser.Utf8.parse_channel channel ParserAutomaton.entry
+
+let load_source path : Parser.AST.t =
+   Parser.Utf8.parse_file ~file:path ParserAutomaton.entry
 
 let print_source ?(channel = stdout) sexps =
    let formatter = Format.formatter_of_out_channel channel in

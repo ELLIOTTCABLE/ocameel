@@ -1,9 +1,9 @@
 (jbuild_version 1)
 
-;; ### Parser: Extract tokens from the `Parser` module
+;; ### Parser: Extract tokens from the `ParserAutomaton` module
 (rule
  ((targets (Tokens.ml))
-  (deps    (Parser.mly))
+  (deps    (ParserAutomaton.mly))
   (action  (run ${bin:menhir} --only-tokens ${<} --base Tokens))
   (mode promote-until-clean)))
 
@@ -48,9 +48,9 @@
   (deps    (Lexer.sedlex.ml))
   (action  (run ${lib:sedlex:ppx_sedlex} ${<} -o ${@}))))
 
-;; ### Parser: Finally, generate the `Parser` module itself
+;; ### Parser: Finally, generate the `ParserAutomaton` module itself
 (menhir
- ((modules (Parser))
+ ((modules (ParserAutomaton))
   (flags (--external-tokens Lexer))))
 
 ;; ### Library

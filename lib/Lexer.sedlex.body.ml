@@ -1,3 +1,5 @@
+type wrapped_token = token * Lexing.position * Lexing.position
+
 (* Mostly cribbed from Steffen Smolka's 2017 ocaml-parsing boilerplate:
       <https://github.com/smolkaj/ocaml-parsing> *)
 
@@ -80,20 +82,3 @@ let loc_token buf =
    let t = token buf in
    let loc_end = next_loc buf in
    (t, loc_start, loc_end)
-
-
-(* menhir interface *)
-type ('token, 'a) parser = ('token, 'a) MenhirLib.Convert.traditional
-
-let parse buf p =
-   let last_token = ref Lexing.(EOF, dummy_pos, dummy_pos) in
-   let next_token () = last_token := loc_token buf; !last_token in
-   try MenhirLib.Convert.Simplified.traditional2revised p next_token with
-   | LexError (pos, s) -> raise (LexError (pos, s))
-   | _ -> raise (ParseError (!last_token))
-
-let parse_string ?pos s p =
-   parse (LexBuffer.of_ascii_string ?pos s) p
-
-let parse_file ~file p =
-   parse (LexBuffer.of_ascii_file file) p
