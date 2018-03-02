@@ -2,8 +2,5 @@
 
 (executable
  ((name cli)
+  (public_name ocameel)
   (libraries (ocameel))))
-
-(install
- ((section bin)
-  (files ((cli.exe as ocameel)))))
