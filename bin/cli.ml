@@ -93,5 +93,7 @@ or `-c`." )
           | files  -> do_stages selected_stage files output )
 
 let () =
+   Ocameel.Parser.pp_exceptions () ;
+
    Exn.handle_uncaught ~exit:true (fun () ->
          Command.run ~version:"0.1" command )
