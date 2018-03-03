@@ -38,20 +38,11 @@ let illegal buf c =
    |> failwith buf
 
 (** Regular expressions *)
-(* let id_init = [%sedlex.regexp? letter  | '_'] *)
-(* let id_cont = [%sedlex.regexp? id_init | Chars ".\'" | digit ] *)
-(* let id = [%sedlex.regexp? id_init, Star id_cont ] *)
-(* let hex = [%sedlex.regexp? digit | 'a'..'f' | 'A'..'F' ] *)
-(* let hexnum = [%sedlex.regexp? '0', 'x', Plus hex ] *)
-(* let decnum = [%sedlex.regexp? Plus digit] *)
-(* let decbyte = [%sedlex.regexp? (digit,digit,digit) | (digit,digit) | digit ] *)
-(* let hexbyte = [%sedlex.regexp? hex,hex ] *)
-
 let newline = [%sedlex.regexp? '\r' | '\n' | "\r\n" ]
+
 (* TODO: I *could* crib JavaScript's definition of 'whitespace', expanding on Unicode category 'Zs'?
  *          <http://www.ecma-international.org/ecma-262/6.0/#table-32> *)
 let whitespace = [%sedlex.regexp? ' ' | newline ]
-let delimiter = [%sedlex.regexp? eof | whitespace | '(' | ')' | '"' | ';' ]
 
 (* FIXME: I'd really like to make this more multilingual, but I have no idea which Unicode
  *        categories or traits to use ... *)
@@ -67,7 +58,6 @@ let subsequent = [%sedlex.regexp? initial | digit | special_subsequent ]
 
 let peculiar_identifier = [%sedlex.regexp? '+' | '-' | "..." ]
 let identifier = [%sedlex.regexp? initial, Star subsequent | peculiar_identifier ]
-let delimited_identifier = [%sedlex.regexp? identifier, delimiter ]
 
 
 (** Swallow whitespace and comments. *)
@@ -79,20 +69,17 @@ let rec swallow_atmosphere buf =
 
 and swallow_comment buf =
    match%sedlex buf with
- (*| eof -> failwith buf "Unterminated comment at EOF"*)
    | newline -> swallow_atmosphere buf
    | any -> swallow_comment buf
    | _ -> assert false
 
-(* returns the next token *)
+(** Return the next token. *)
 let rec token buf =
    swallow_atmosphere buf;
    match%sedlex buf with
    | eof -> EOF
 
-   | delimited_identifier ->
-     LexBuffer.rollback buf;
-     identifier buf
+   | identifier -> IDENTIFIER (LexBuffer.Utf8.lexeme buf)
 
    (* parenths *)
    | '(' -> LPAR
@@ -100,12 +87,6 @@ let rec token buf =
 
    (* YOUR TOKENS HERE... *)
    | _ -> illegal buf (Char.chr (next buf))
-
-and identifier buf =
-   (* FIXME: Uh, do I need to swallow atmosphere?
-    * swallow_atmosphere buf; *)
-   match%sedlex buf with
-   | _ -> IDENTIFIER ((LexBuffer.Utf8.lexeme buf) ^ "hi")
 
 (* wrapper around `token` that records start and end locations *)
 let loc_token buf =
