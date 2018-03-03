@@ -82,8 +82,8 @@ let rec token buf =
    | identifier -> IDENTIFIER (LexBuffer.Utf8.lexeme buf)
 
    (* parenths *)
-   | '(' -> LPAR
-   | ')' -> RPAR
+   | '(' -> LEFT_PAREN
+   | ')' -> RIGHT_PAREN
 
    (* YOUR TOKENS HERE... *)
    | _ -> illegal buf (Char.chr (next buf))

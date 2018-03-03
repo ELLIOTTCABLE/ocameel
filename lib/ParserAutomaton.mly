@@ -1,5 +1,5 @@
 (*** Tokens ***)
-%token LPAR RPAR LVEC APOS TICK COMMA COMMA_AT DQUO SEMI EOF
+%token LEFT_PAREN RIGHT_PAREN LVEC APOS TICK COMMA COMMA_AT DQUO SEMI EOF
 %token <string> IDENTIFIER
 (* %token <bool> BOOL *)
 (* %token <int> NUM10 *)
@@ -11,10 +11,14 @@
 (*** Rules ***)
 
 program:
-  | p = list(expression); EOF { p }
+  | it = list(expression); EOF { it }
   ;
 
 expression:
-  | i = IDENTIFIER { Parser.AST.Atom i }
+   | LEFT_PAREN; it = list(identifier); RIGHT_PAREN { Parser.AST.List it }
+   ;
+
+identifier:
+  | it = IDENTIFIER { Parser.AST.Atom it }
 
 %%
