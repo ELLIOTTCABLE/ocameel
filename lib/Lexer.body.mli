@@ -5,3 +5,4 @@ exception LexError of (Lexing.position * string)
 
 val token : LexBuffer.t -> token
 val loc_token : LexBuffer.t -> wrapped_token
+val pp_exceptions : unit -> unit

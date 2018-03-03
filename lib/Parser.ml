@@ -23,13 +23,18 @@ let parse lexbuf production =
    | _ -> raise (ParseError (!last_token))
 
 
+let error_of_exn = let open Location in function
+   | ParseError (token, loc_start, loc_end) ->
+     let loc = Location.{ loc_start; loc_end; loc_ghost = false} in
+     let msg =
+        Lexer.show_token token
+        |> Printf.sprintf "parse error while reading token '%s'" in
+     Some { loc; msg; sub=[]; if_highlight=""; }
+   | _ -> None
+
 let pp_exceptions () =
-   (* XXX: Jane Street Core intentionally blocks `Printexc`, without a clear explanation as to why.
-    *      Should I not be using it?
-    *      (See: <https://ocaml.janestreet.com/ocaml-core/latest/doc/core_kernel/Core_kernel/Printexc/> *)
-  Caml.Printexc.register_printer (fun exn -> Core.Option.try_with (fun () ->
-    Location.report_exception Format.str_formatter exn;
-    Format.flush_str_formatter ()))
+   Location.register_error_of_exn error_of_exn;
+   Lexer.pp_exceptions ()
 
 
 module Utf8 = struct

@@ -13,20 +13,21 @@ exception LexError of (Lexing.position * string)
 (** Signals a parsing error at the provided token and its start and end locations. *)
 exception ParseError of (token * Lexing.position * Lexing.position)
 
-(* Register exceptions for pretty printing *)
-let _ =
-   let open Location in
-   register_error_of_exn (function
-         | LexError (pos, msg) ->
-           let loc = { loc_start = pos; loc_end = pos; loc_ghost = false} in
-           Some { loc; msg; sub=[]; if_highlight=""; }
-         | ParseError (token, loc_start, loc_end) ->
-           let loc = Location.{ loc_start; loc_end; loc_ghost = false} in
-           let msg =
-              (* show_token token *) failwith "nyi"
-              |> Printf.sprintf "parse error while reading token '%s'" in
-           Some { loc; msg; sub=[]; if_highlight=""; }
-         | _ -> None)
+let error_of_exn = let open Location in function
+   | LexError (pos, msg) ->
+     let loc = { loc_start = pos; loc_end = pos; loc_ghost = false} in
+     Some { loc; msg; sub=[]; if_highlight=""; }
+   | _ -> None
+
+(** Register exceptions for pretty printing *)
+let pp_exceptions () =
+   (* XXX: Jane Street Core intentionally blocks `Printexc`, without a clear explanation as to why.
+    *      Should I not be using it?
+    *      (See: <https://ocaml.janestreet.com/ocaml-core/latest/doc/core_kernel/Core_kernel/Printexc/> *)
+   Caml.Printexc.register_printer (fun exn -> Core.Option.try_with (fun () ->
+         Location.report_exception Format.str_formatter exn;
+         Format.flush_str_formatter ())) ;
+   Location.register_error_of_exn error_of_exn
 
 
 let failwith buf s = raise (LexError (buf.pos, s))
