@@ -8,7 +8,8 @@ homepage: "https://github.com/ELLIOTTCABLE/ocameel"
 bug-reports: "https://github.com/ELLIOTTCABLE/ocameel/issues"
 depends: [
   "jbuilder" {build}
-  "core"
+  "core" {>= "0.10.0"}
+  "ppx_deriving"
 ]
 build: [
   ["jbuilder" "subst" "-n" name] {pinned}
