@@ -3,6 +3,6 @@
 (library
  ((name        ocameel)
   (public_name ocameel)
-  (libraries (core))
+  (libraries (core tyre re))
   (preprocess (pps (ppx_deriving.std ppx_sexp_conv)))
 ))

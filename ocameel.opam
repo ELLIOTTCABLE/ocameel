@@ -11,6 +11,8 @@ depends: [
   "core" {>= "0.10.0"}
   "ppx_deriving"
   "ppx_sexp_conv"
+  "tyre"
+  "re"
 ]
 build: [
   ["jbuilder" "subst" "-n" name] {pinned}
