@@ -2,8 +2,7 @@ open Core
 
 type stage = Parsing | Compilation | Assembly | Linking
 
-
-let do_parse files output =
+let do_parse files options output =
    let out_channel = match output with
       | "-"       -> stdout
       | out_file  -> Out_channel.create (out_file ^ ".scm")
@@ -14,7 +13,7 @@ let do_parse files output =
                                    |> Ocameel.print_source ~channel:out_channel ) ;
    Out_channel.close out_channel
 
-let do_compile files output =
+let do_compile files options output =
    let out_channel = match output with
       | "-"       -> stdout
       | out_file  -> Out_channel.create (out_file ^ ".s")
@@ -33,16 +32,16 @@ let do_compile files output =
 
 (* --------------------------- *)
 
-let do_stages stage files output =
+let do_stages stage files options output =
    match stage with
-   | Parsing      -> do_parse files output
-   | Compilation  -> do_compile files output
+   | Parsing      -> do_parse files options output
+   | Compilation  -> do_compile files options output
 
    | Assembly     -> failwith "NYI: invoking linker"
 
    (* FIXME: error handling *)
    | Linking      ->
-     do_compile files output ;
+     do_compile files options output ;
      ignore (Unix.exec ~use_path: true
                 ~prog: "gcc"
                 ~argv: [ "gcc" ; "-o" ; output ; (output ^ ".s") ; "runtime.o"  ]
@@ -63,8 +62,12 @@ let command =
                             object-file (overrides -E, -S)"
 
          +> flag "-o"
-               (optional file) ~doc:"output-name (Will be appended with an appropriate \
+               (optional file) ~doc:"file-name Designate output file (Will be appended with an appropriate \
                                      suffix, based on the chosen stage)"
+
+         +> flag "-dump-ast"
+               (optional file) ~doc:"file-name Dumps an internal representation of input \
+                                     programs to file-name"
 
          (* +> flag "-d" (optional_with_default false bool) ~doc:" Debug mode" *)
          (* +> flag "-v" (optional_with_default false bool) ~doc:" Verbose output" *)
@@ -80,17 +83,22 @@ or `-c`." )
 
       spec
 
-      (fun parse_only and_generate and_invoke_assembler output files  () ->
-          let output = match output with | None -> "a" | Some filename -> filename in
+      (fun parse_only and_generate and_invoke_assembler
+         output_to dump_ast_to files () ->
+          let output_to = match output_to with | None -> "a" | Some filename -> filename in
           let selected_stage =
              if (and_invoke_assembler) then Assembly
              else if (and_generate) then Compilation
              else if (parse_only) then Parsing
              else Linking
-          in
-          match files with
-          | []     -> do_stages selected_stage ["-"] output
-          | files  -> do_stages selected_stage files output )
+
+          and options = {
+             Ocameel.ast_dump_output_file = dump_ast_to;
+          }
+
+          in match files with
+          | []     -> do_stages selected_stage ["-"] options output_to
+          | files  -> do_stages selected_stage files options output_to )
 
 let () =
    Exn.handle_uncaught ~exit:true (fun () ->

@@ -1,5 +1,10 @@
 open Core
 
+type options = {
+   ast_dump_output_file : string option
+}
+
+
 let input_source channel =
    Sexp.input_sexps channel
 
