@@ -1,17 +1,13 @@
-type wrapped_token = token * Lexing.position * Lexing.position
+open Token
+open Sedlexing
 
-(* Mostly cribbed from Steffen Smolka's 2017 ocaml-parsing boilerplate:
-      <https://github.com/smolkaj/ocaml-parsing> *)
-
-(* use custom lexbuffer to keep track of source location *)
-module Sedlexing = LexBuffer
-open LexBuffer
+type wrapped_token = Token.t * Lexing.position * Lexing.position
 
 (** Signals a lexing error at the provided source location.  *)
 exception LexError of (Lexing.position * string)
 
 (** Signals a parsing error at the provided token and its start and end locations. *)
-exception ParseError of (token * Lexing.position * Lexing.position)
+exception ParseError of (Token.t * Lexing.position * Lexing.position)
 
 let error_of_exn = let open Location in function
    | LexError (pos, msg) ->
@@ -30,11 +26,13 @@ let pp_exceptions () =
    Location.register_error_of_exn error_of_exn
 
 
-let failwith buf s = raise (LexError (buf.pos, s))
+let failwith buf s =
+   let start, curr = Sedlexing.lexing_positions buf in
+   raise (LexError (curr, s))
 
 let illegal buf c =
-   Char.escaped c
-   |> Printf.sprintf "unexpected character in expression: '%s'"
+   Uchar.to_int c
+   |> Printf.sprintf "unexpected character in expression: 'U+%04X'"
    |> failwith buf
 
 (** Regular expressions *)
@@ -79,19 +77,15 @@ let rec token buf =
    match%sedlex buf with
    | eof -> EOF
 
-   | identifier -> IDENTIFIER (LexBuffer.Utf8.lexeme buf)
+   | identifier -> IDENTIFIER (Sedlexing.Utf8.lexeme buf)
 
    (* parenths *)
    | '(' -> LEFT_PAREN
    | ')' -> RIGHT_PAREN
 
    (* YOUR TOKENS HERE... *)
-   | _ -> illegal buf (Char.chr (next buf))
+   | _ ->
+     match next buf with
+     | Some c -> illegal buf c
+     | None -> Pervasives.failwith "Unreachable: WTF"
 
-(* wrapper around `token` that records start and end locations *)
-let loc_token buf =
-   let () = swallow_atmosphere buf in (* dispose of garbage before recording start location *)
-   let loc_start = next_loc buf in
-   let t = token buf in
-   let loc_end = next_loc buf in
-   (t, loc_start, loc_end)

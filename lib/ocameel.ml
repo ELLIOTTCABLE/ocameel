@@ -2,11 +2,11 @@ open Core
 
 module Parser = Parser
 
-let input_source channel : Parser.AST.t =
-   Parser.Utf8.parse_channel channel ParserAutomaton.program
+let input_source channel : AST.t =
+   failwith "NYI"
 
-let load_source path : Parser.AST.t =
-   Parser.Utf8.parse_file ~file:path ParserAutomaton.program
+let load_source path : AST.t =
+   failwith "NYI"
 
 let print_source ?(channel = stdout) sexps =
    let formatter = Format.formatter_of_out_channel channel in
