@@ -10,8 +10,8 @@ depends: [
   "jbuilder" {>="1.0+beta17" & build}
   "core" {>= "0.10.0"}
   "ppx_deriving"
-  "sedlex"
-  "menhir"
+  "sedlex" {>= "1.99.4"}
+  "tyre"
 ]
 build: [
   ["jbuilder" "subst" "-n" name] {pinned}

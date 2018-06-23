@@ -20,10 +20,10 @@ let string_of_radix = function
    | Hex -> "#x"
 
 let radix_re = let open Tyre in
-   conv radix_of_string string_of_radix (regex (Re_posix.re "#[bodx]"))
+   conv radix_of_string string_of_radix (regex (Re.Posix.re "#[bodx]"))
 
 let decimal_only = let open Tyre in
-   conv radix_of_string string_of_radix (regex (Re_posix.re "#d"))
+   conv radix_of_string string_of_radix (regex (Re.Posix.re "#d"))
 
 type sign = Positive | Negative
 
@@ -37,7 +37,7 @@ let string_of_sign = function
    | Negative -> "-"
 
 let sign_re = let open Tyre in
-   conv sign_of_string string_of_sign (regex (Re_posix.re "[+-]"))
+   conv sign_of_string string_of_sign (regex (Re.Posix.re "[+-]"))
 
 let char_of_int n =
    if n < 9 then
@@ -70,8 +70,7 @@ and parse_literal =
      | None ->
        match parse_number str with
        | Some n -> Some (AST.Numeric n)
-       | None ->
-         match parse_str
+       | None -> None
 
 and parse_boolean =
    function
