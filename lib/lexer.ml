@@ -1,13 +1,16 @@
 open Token
 open Sedlexing
 
-type wrapped_token = Token.t * Lexing.position * Lexing.position
+type token = Token.t * Lexing.position * Lexing.position
 
-(** Signals a lexing error at the provided source location.  *)
 exception LexError of (Lexing.position * string)
+exception ParseError of token
 
-(** Signals a parsing error at the provided token and its start and end locations. *)
-exception ParseError of (Token.t * Lexing.position * Lexing.position)
+
+let locate buf token =
+   let start, curr = lexing_positions buf in
+   token, start, curr
+
 
 let error_of_exn = let open Location in function
    | LexError (pos, msg) ->
@@ -27,13 +30,14 @@ let pp_exceptions () =
 
 
 let failwith buf s =
-   let start, curr = Sedlexing.lexing_positions buf in
+   let start, curr = lexing_positions buf in
    raise (LexError (curr, s))
 
 let illegal buf c =
    Uchar.to_int c
    |> Printf.sprintf "unexpected character in expression: 'U+%04X'"
    |> failwith buf
+
 
 (** Regular expressions *)
 let newline = [%sedlex.regexp? '\r' | '\n' | "\r\n" ]
@@ -71,17 +75,18 @@ and swallow_comment buf =
    | any -> swallow_comment buf
    | _ -> assert false
 
+
 (** Return the next token. *)
 let rec token buf =
    swallow_atmosphere buf;
    match%sedlex buf with
-   | eof -> EOF
+   | eof -> EOF |> locate buf
 
-   | identifier -> IDENTIFIER (Sedlexing.Utf8.lexeme buf)
+   | identifier -> IDENTIFIER (Sedlexing.Utf8.lexeme buf) |> locate buf
 
    (* parenths *)
-   | '(' -> LEFT_PAREN
-   | ')' -> RIGHT_PAREN
+   | '(' -> LEFT_PAREN |> locate buf
+   | ')' -> RIGHT_PAREN |> locate buf
 
    (* YOUR TOKENS HERE... *)
    | _ ->
