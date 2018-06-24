@@ -2,7 +2,6 @@ type t =
    | LEFT_PAREN
    | RIGHT_PAREN
    | TICK
-   | SEMI
    | LVEC
    | DQUO
    | COMMA_AT
@@ -12,5 +11,8 @@ type t =
    | IDENTIFIER of string
 
    | COMMENT_LINE of string
+   | LEFT_COMMENT_DELIM
+   | RIGHT_COMMENT_DELIM
+   | COMMENT_CHUNK of string
    | EOF
 [@@deriving show]
