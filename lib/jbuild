@@ -15,4 +15,5 @@
      sedlex
      compiler-libs.common)
   )
-  (preprocess (pps (sedlex.ppx ppx_deriving.std)))))
+  (inline_tests)
+  (preprocess (pps (ppx_expect ppx_inline_test sedlex.ppx ppx_deriving.std)))))

@@ -89,3 +89,7 @@ let rec token buf =
      | Some c -> illegal buf c
      | None -> Pervasives.failwith "Unreachable: WTF"
 
+
+let lb str = Sedlexing.Latin1.from_string str
+
+let%test _ = token (lb "()") = LEFT_PAREN
