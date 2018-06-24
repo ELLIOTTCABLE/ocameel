@@ -2,6 +2,7 @@ open Token
 open Sedlexing
 
 type token = Token.t * Lexing.position * Lexing.position
+type gen = unit -> token option
 
 exception LexError of (Lexing.position * string)
 exception ParseError of token
@@ -76,8 +77,8 @@ and swallow_comment buf =
    | _ -> assert false
 
 
-(** Return the next token. *)
-let rec token buf =
+(** Return the next token, with location information. *)
+let rec token_loc buf =
    swallow_atmosphere buf;
    match%sedlex buf with
    | eof -> EOF |> locate buf
@@ -94,7 +95,26 @@ let rec token buf =
      | Some c -> illegal buf c
      | None -> Pervasives.failwith "Unreachable: WTF"
 
-let%test_module "Lexer" = (module struct
+
+(** Return *just* the next token, discarding location information. *)
+let token buf =
+   let tok, _, _ = token_loc buf in tok
+
+let gen_loc buf =
+   fun () -> match token_loc buf with
+      | EOF, _, _ -> None
+      | _ as tuple -> Some tuple
+
+let gen buf =
+   fun () -> match token_loc buf with
+      | EOF, _, _ -> None
+      | tok, _, _ -> Some tok
+
+let tokens_loc buf = gen_loc buf |> Gen.to_list
+let tokens buf = gen buf |> Gen.to_list
+
+
+let%test_module "Lexing" = (module struct
    (* Helpers *)
    let lb str = Sedlexing.Latin1.from_string str
    let tok buf =
