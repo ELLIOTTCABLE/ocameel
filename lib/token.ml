@@ -1,13 +1,16 @@
 type t =
+   | LEFT_PAREN
+   | RIGHT_PAREN
    | TICK
    | SEMI
-   | RIGHT_PAREN
    | LVEC
-   | LEFT_PAREN
-   | IDENTIFIER of (string)
-   | EOF
    | DQUO
    | COMMA_AT
    | COMMA
    | APOS
+
+   | IDENTIFIER of string
+
+   | COMMENT_LINE of string
+   | EOF
 [@@deriving show]

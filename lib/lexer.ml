@@ -67,21 +67,19 @@ let identifier = [%sedlex.regexp? initial, Star subsequent | peculiar_identifier
 let rec swallow_atmosphere buf =
    match%sedlex buf with
    | Plus whitespace -> swallow_atmosphere buf
-   | ";" -> swallow_comment buf
    | _ -> ()
 
-and swallow_comment buf =
+and comment_line buf =
    match%sedlex buf with
-   | newline -> swallow_atmosphere buf
-   | any -> swallow_comment buf
-   | _ -> assert false
-
+   | Star (Compl '\n') -> COMMENT_LINE (Sedlexing.Utf8.lexeme buf) |> locate buf
+   | _ -> token_loc buf
 
 (** Return the next token, with location information. *)
-let rec token_loc buf =
+and token_loc buf =
    swallow_atmosphere buf;
    match%sedlex buf with
    | eof -> EOF |> locate buf
+   | ';' -> comment_line buf
 
    | identifier -> IDENTIFIER (Sedlexing.Utf8.lexeme buf) |> locate buf
 
@@ -165,6 +163,7 @@ let%test_module "Lexing" = (module struct
    let%test "comments at start of line" =
       let buf = lb "\n(\n; comment!\n   lily-buttons\n)\n" in
       token buf = LEFT_PAREN &&
+      token buf = COMMENT_LINE " comment!" &&
       token buf = IDENTIFIER "lily-buttons" &&
       token buf = RIGHT_PAREN
 
@@ -172,5 +171,6 @@ let%test_module "Lexing" = (module struct
       let buf = lb "\n(\n   lily-buttons ; comment!\n)\n" in
       token buf = LEFT_PAREN &&
       token buf = IDENTIFIER "lily-buttons" &&
+      token buf = COMMENT_LINE " comment!" &&
       token buf = RIGHT_PAREN
 end)
