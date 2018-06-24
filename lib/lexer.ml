@@ -231,4 +231,13 @@ let%test_module "Lexing" = (module struct
       match token buf with
       | COMMENT_CHUNK _ -> true
       | _ -> false
+
+   let%expect_test "block comments are bracketed by delimiter tokens" =
+      let buf = lb "#| block comment |#" in
+      token buf |> Token.show |> print_endline;
+      token buf |> Token.show |> print_endline;
+      [%expect {|
+         Token.LEFT_COMMENT_DELIM
+         (Token.COMMENT_CHUNK " block comment ")
+      |}]
 end)
