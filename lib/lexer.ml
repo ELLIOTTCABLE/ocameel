@@ -94,7 +94,16 @@ let rec token buf =
      | Some c -> illegal buf c
      | None -> Pervasives.failwith "Unreachable: WTF"
 
+let%test_module "Lexer" = (module struct
+   (* Helpers *)
+   let lb str = Sedlexing.Latin1.from_string str
+   let tok buf =
+      let tok, _, _ = token buf in tok
 
-let lb str = Sedlexing.Latin1.from_string str
-
-let%test _ = token (lb "()") = LEFT_PAREN
+   (* Tests *)
+   let%test _ = lb "(" |> tok = LEFT_PAREN
+   let%test _ =
+      let buf = lb "()" in
+      tok buf |> ignore;
+      tok buf = LEFT_PAREN
+end)
