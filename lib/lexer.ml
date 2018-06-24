@@ -117,10 +117,10 @@ let tokens buf = gen buf |> Gen.to_list
 
 
 let%test_module "Lexing" = (module struct
-   (* Helpers *)
+   (* {2 Helpers } *)
    let lb str = Sedlexing.Latin1.from_string str
 
-   (* Tests *)
+   (* {2 Tests } *)
    let%test "generator yields tokens" =
       let g = Sedlexing.Latin1.from_string "()" |> gen in
       g () = Some LEFT_PAREN &&
@@ -134,6 +134,7 @@ let%test_module "Lexing" = (module struct
    let%test "simple opening paren" =
       lb "(" |> token = LEFT_PAREN
 
+   (* Parens, whitespace, simple identifiers, comments *)
    let%test "simple pair of parens" =
       let buf = lb "()" in
       token buf |> ignore;
@@ -157,6 +158,18 @@ let%test_module "Lexing" = (module struct
 
    let%test "extraneous newlines" =
       let buf = lb "\n(\n   lily-buttons\n)\n" in
+      token buf = LEFT_PAREN &&
+      token buf = IDENTIFIER "lily-buttons" &&
+      token buf = RIGHT_PAREN
+
+   let%test "comments at start of line" =
+      let buf = lb "\n(\n; comment!\n   lily-buttons\n)\n" in
+      token buf = LEFT_PAREN &&
+      token buf = IDENTIFIER "lily-buttons" &&
+      token buf = RIGHT_PAREN
+
+   let%test "comments at end of line" =
+      let buf = lb "\n(\n   lily-buttons ; comment!\n)\n" in
       token buf = LEFT_PAREN &&
       token buf = IDENTIFIER "lily-buttons" &&
       token buf = RIGHT_PAREN
