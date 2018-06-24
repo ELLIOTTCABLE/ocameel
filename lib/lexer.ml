@@ -101,9 +101,28 @@ let%test_module "Lexer" = (module struct
       let tok, _, _ = token buf in tok
 
    (* Tests *)
-   let%test _ = lb "(" |> tok = LEFT_PAREN
-   let%test _ =
+   let%test "simple opening paren" = lb "(" |> tok = LEFT_PAREN
+   let%test "simple pair of parens" =
       let buf = lb "()" in
       tok buf |> ignore;
-      tok buf = LEFT_PAREN
+      tok buf = RIGHT_PAREN
+
+   let%test "bare identifier" =
+      let buf = lb "lily-buttons" in
+      tok buf = IDENTIFIER "lily-buttons"
+
+   let%test "identifier in parens" =
+      let buf = lb "(lily-buttons)" in
+      tok buf |> ignore;
+      tok buf = IDENTIFIER "lily-buttons"
+
+   let%test "extraneous whitespace" =
+      let buf = lb "   (   lily-buttons   )   " in
+      tok buf |> ignore;
+      tok buf = IDENTIFIER "lily-buttons"
+
+   let%test "extraneous newlines" =
+      let buf = lb "\n(\n   lily-buttons\n)\n" in
+      tok buf |> ignore;
+      tok buf = IDENTIFIER "lily-buttons"
 end)
