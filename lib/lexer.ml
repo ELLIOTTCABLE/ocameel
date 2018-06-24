@@ -30,14 +30,14 @@ let pp_exceptions () =
    Location.register_error_of_exn error_of_exn
 
 
-let failwith buf s =
+let lexfail buf s =
    let start, curr = lexing_positions buf in
    raise (LexError (curr, s))
 
 let illegal buf c =
    Uchar.to_int c
    |> Printf.sprintf "unexpected character in expression: 'U+%04X'"
-   |> failwith buf
+   |> lexfail buf
 
 
 (** Regular expressions *)
@@ -91,7 +91,7 @@ and token_loc buf =
    | _ ->
      match next buf with
      | Some c -> illegal buf c
-     | None -> Pervasives.failwith "Unreachable: WTF"
+     | None -> failwith "Unreachable: WTF"
 
 
 (** Return *just* the next token, discarding location information. *)
@@ -132,7 +132,7 @@ let%test_module "Lexing" = (module struct
    let%test "simple opening paren" =
       lb "(" |> token = LEFT_PAREN
 
-   (* Parens, whitespace, simple identifiers, comments *)
+   (* Parens, whitespace, simple identifiers, line-comments *)
    let%test "simple pair of parens" =
       let buf = lb "()" in
       token buf |> ignore;
@@ -160,14 +160,14 @@ let%test_module "Lexing" = (module struct
       token buf = IDENTIFIER "lily-buttons" &&
       token buf = RIGHT_PAREN
 
-   let%test "comments at start of line" =
+   let%test "line-comments at start of line" =
       let buf = lb "\n(\n; comment!\n   lily-buttons\n)\n" in
       token buf = LEFT_PAREN &&
       token buf = COMMENT_LINE " comment!" &&
       token buf = IDENTIFIER "lily-buttons" &&
       token buf = RIGHT_PAREN
 
-   let%test "comments at end of line" =
+   let%test "line-comments at end of line" =
       let buf = lb "\n(\n   lily-buttons ; comment!\n)\n" in
       token buf = LEFT_PAREN &&
       token buf = IDENTIFIER "lily-buttons" &&
