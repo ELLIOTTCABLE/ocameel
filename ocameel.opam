@@ -11,6 +11,7 @@ depends: [
   "core" {>= "0.10.0"}
   "ppx_deriving"
   "sedlex" {>= "1.99.4"}
+  "re" {>= "1.7.3"}
   "tyre"
 ]
 build: [
