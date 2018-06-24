@@ -114,35 +114,50 @@ let tokens_loc buf = gen_loc buf |> Gen.to_list
 let tokens buf = gen buf |> Gen.to_list
 
 
+
+
 let%test_module "Lexing" = (module struct
    (* Helpers *)
    let lb str = Sedlexing.Latin1.from_string str
-   let tok buf =
-      let tok, _, _ = token buf in tok
 
    (* Tests *)
-   let%test "simple opening paren" = lb "(" |> tok = LEFT_PAREN
+   let%test "generator yields tokens" =
+      let g = Sedlexing.Latin1.from_string "()" |> gen in
+      g () = Some LEFT_PAREN &&
+      g () = Some RIGHT_PAREN &&
+      g () = None
+
+   let%test "can generate into a list" =
+      let toks = Sedlexing.Latin1.from_string "()" |> tokens in
+      toks = [LEFT_PAREN; RIGHT_PAREN]
+
+   let%test "simple opening paren" =
+      lb "(" |> token = LEFT_PAREN
+
    let%test "simple pair of parens" =
       let buf = lb "()" in
-      tok buf |> ignore;
-      tok buf = RIGHT_PAREN
+      token buf |> ignore;
+      token buf = RIGHT_PAREN
 
    let%test "bare identifier" =
       let buf = lb "lily-buttons" in
-      tok buf = IDENTIFIER "lily-buttons"
+      token buf = IDENTIFIER "lily-buttons"
 
    let%test "identifier in parens" =
       let buf = lb "(lily-buttons)" in
-      tok buf |> ignore;
-      tok buf = IDENTIFIER "lily-buttons"
+      token buf = LEFT_PAREN &&
+      token buf = IDENTIFIER "lily-buttons" &&
+      token buf = RIGHT_PAREN
 
    let%test "extraneous whitespace" =
       let buf = lb "   (   lily-buttons   )   " in
-      tok buf |> ignore;
-      tok buf = IDENTIFIER "lily-buttons"
+      token buf = LEFT_PAREN &&
+      token buf = IDENTIFIER "lily-buttons" &&
+      token buf = RIGHT_PAREN
 
    let%test "extraneous newlines" =
       let buf = lb "\n(\n   lily-buttons\n)\n" in
-      tok buf |> ignore;
-      tok buf = IDENTIFIER "lily-buttons"
+      token buf = LEFT_PAREN &&
+      token buf = IDENTIFIER "lily-buttons" &&
+      token buf = RIGHT_PAREN
 end)

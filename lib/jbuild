@@ -16,5 +16,5 @@
      sedlex
      compiler-libs.common)
   )
-  (inline_tests)
+  (inline_tests ((flags (-verbose -show-counts))))
   (preprocess (pps (ppx_expect ppx_inline_test sedlex.ppx ppx_deriving.std)))))
