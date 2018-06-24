@@ -88,6 +88,7 @@ let rec swallow_atmosphere buf =
 let rec comment buf =
    let s = buf.sedlex in
    match%sedlex s with
+   | eof -> EOF |> locate buf
    | Star (Compl ('\r' | '\n')) ->
      COMMENT_LINE (utf8 buf) |> locate buf
    | _ -> unreachable "comment"
@@ -101,7 +102,9 @@ and block_comment depth buf =
    | "#|" ->
      buf.mode <- BlockComment (depth + 1);
      LEFT_COMMENT_DELIM |> locate buf
-   | Plus any -> COMMENT_CHUNK (utf8 buf) |> locate buf
+   | '#', Compl '|'
+   | '|', Compl '#' -> COMMENT_CHUNK (utf8 buf) |> locate buf
+   | Plus (Compl ('#' | '|')) -> COMMENT_CHUNK (utf8 buf) |> locate buf
    | eof -> lexfail buf "Reached end-of-file without finding closing block-comment marker"
    | _ -> unreachable "block_comment"
 
@@ -236,8 +239,10 @@ let%test_module "Lexing" = (module struct
       let buf = lb "#| block comment |#" in
       token buf |> Token.show |> print_endline;
       token buf |> Token.show |> print_endline;
+      token buf |> Token.show |> print_endline;
       [%expect {|
          Token.LEFT_COMMENT_DELIM
          (Token.COMMENT_CHUNK " block comment ")
+         Token.RIGHT_COMMENT_DELIM
       |}]
 end)
