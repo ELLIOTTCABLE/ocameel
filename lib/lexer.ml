@@ -1,7 +1,7 @@
 open Token
 open Sedlexing
 
-type mode = Main | BlockComment of int | String
+type mode = Main | BlockComment of int | Number of int option | String
 type buffer = {
    sedlex: Sedlexing.lexbuf;
    mutable mode: mode
@@ -63,9 +63,9 @@ let whitespace = [%sedlex.regexp? ' ' | newline ]
 
 (* {3 Numbers } *)
 let digit2 = [%sedlex.regexp? '0'..'1' ]
-let digit8 = [%sedlex.regexp? binary_digit | '2'..'7' ]
-let digit10 = [%sedlex.regexp? octal_digit | '8'..'9' ]
-let digit16 = [%sedlex.regexp? decimal_digit | 'A'..'F' | 'a'..'f' ]
+let digit8 = [%sedlex.regexp? digit2 | '2'..'7' ]
+let digit10 = [%sedlex.regexp? digit8 | '8'..'9' ]
+let digit16 = [%sedlex.regexp? digit10 | 'A'..'F' | 'a'..'f' ]
 
 let sign = [%sedlex.regexp? "" | '+' | '-']
 let exactness = [%sedlex.regexp? Opt('#', Chars "eiEI") ]
@@ -98,7 +98,7 @@ let special_initial = [%sedlex.regexp? Chars "!$%&*/:<=>?^_~" ]
 let initial = [%sedlex.regexp? letter | special_initial ]
 
 let special_subsequent = [%sedlex.regexp? Chars "+-.@" ]
-let subsequent = [%sedlex.regexp? initial | decimal_digit | special_subsequent ]
+let subsequent = [%sedlex.regexp? initial | digit10 | special_subsequent ]
 
 let peculiar_identifier = [%sedlex.regexp? '+' | '-' | "..." ]
 let identifier = [%sedlex.regexp? (initial, Star subsequent) | peculiar_identifier ]
@@ -119,6 +119,9 @@ let rec comment buf =
    | Star (Compl ('\r' | '\n')) ->
      COMMENT_LINE (utf8 buf) |> locate buf
    | _ -> unreachable "comment"
+
+and number base buf =
+   failwith "NYI"
 
 (* Wow. This is a monstrosity. *)
 and block_comment depth buf =
@@ -195,6 +198,7 @@ let token_loc buf =
    match buf.mode with
    | Main -> main buf
    | BlockComment depth -> block_comment depth buf
+   | Number base -> number base buf
    | String -> failwith "NYI"
 
 

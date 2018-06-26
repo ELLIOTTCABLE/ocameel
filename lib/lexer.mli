@@ -1,6 +1,6 @@
 type buffer
 type token = Token.t * Lexing.position * Lexing.position
-type mode = Main | BlockComment of int | String
+type mode = Main | BlockComment of int | Number of int option | String
 type gen = unit -> token option
 
 (** Signals a lexing error at the provided source location. *)
