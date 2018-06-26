@@ -55,7 +55,7 @@ let unreachable str =
 
 
 (** Regular expressions *)
-let newline = [%sedlex.regexp? '\r' | '\n' | "\r\n" ]
+let newline = [%sedlex.regexp? "\r\n" | '\r' | '\n' ]
 
 (* TODO: I *could* crib JavaScript's definition of 'whitespace', expanding on Unicode category 'Zs'?
  *          <http://www.ecma-international.org/ecma-262/6.0/#table-32> *)
@@ -63,18 +63,20 @@ let whitespace = [%sedlex.regexp? ' ' | newline ]
 
 (* FIXME: I'd really like to make this more multilingual, but I have no idea which Unicode
  *        categories or traits to use ... *)
-let digit = [%sedlex.regexp? '0'..'9']
-let letter = [%sedlex.regexp? 'A'..'Z' | 'a'..'z']
+let binary_digit = [%sedlex.regexp? '0'..'1' ]
+let octal_digit = [%sedlex.regexp? binary_digit | '2'..'7' ]
+let decimal_digit = [%sedlex.regexp? octal_digit | '8'..'9' ]
+let hex_digit = [%sedlex.regexp? decimal_digit | 'A'..'F' | 'a'..'f' ]
+let letter = [%sedlex.regexp? 'A'..'Z' | 'a'..'z' ]
 
-let special_initial = [%sedlex.regexp?
-   '!' | '$' | '%' | '&' | '*' | '/' | ':' | '<' | '=' | '>' | '?' | '^' | '_' | '~' ]
+let special_initial = [%sedlex.regexp? Chars "!$%&*/:<=>?^_~"]
 let initial = [%sedlex.regexp? letter | special_initial ]
 
-let special_subsequent = [%sedlex.regexp? '+' | '-' | '.' | '@' ]
-let subsequent = [%sedlex.regexp? initial | digit | special_subsequent ]
+let special_subsequent = [%sedlex.regexp? Chars "+-.@" ]
+let subsequent = [%sedlex.regexp? initial | decimal_digit | special_subsequent ]
 
 let peculiar_identifier = [%sedlex.regexp? '+' | '-' | "..." ]
-let identifier = [%sedlex.regexp? initial, Star subsequent | peculiar_identifier ]
+let identifier = [%sedlex.regexp? (initial, Star subsequent) | peculiar_identifier ]
 
 
 (* Swallows whitespace. *)
