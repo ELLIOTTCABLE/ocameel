@@ -10,6 +10,8 @@ type t =
 
    | IDENTIFIER of string
 
+   | HASH_SEMI
+
    | COMMENT_LINE of string
    | LEFT_COMMENT_DELIM
    | RIGHT_COMMENT_DELIM

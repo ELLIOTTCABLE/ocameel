@@ -4,10 +4,10 @@ type mode = Main | BlockComment of int | String
 type gen = unit -> token option
 
 (** Signals a lexing error at the provided source location. *)
-exception LexError of (Lexing.position * string)
+exception LexError of (Lexing.position * string) [@@deriving sexp]
 
 (** Signals a parsing error at the provided token and its start and end locations. *)
-exception ParseError of token
+exception ParseError of token [@@deriving sexp]
 
 
 val token_loc : buffer -> token

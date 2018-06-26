@@ -10,8 +10,8 @@ type buffer = {
 type token = Token.t * Lexing.position * Lexing.position
 type gen = unit -> token option
 
-exception LexError of (Lexing.position * string)
-exception ParseError of token
+exception LexError of (Lexing.position * string) [@@deriving sexp]
+exception ParseError of token [@@deriving sexp]
 
 let sedlex_of_buffer buf = buf.sedlex
 let buffer_of_sedlex sedlex = { sedlex = sedlex; mode = Main }
@@ -139,8 +139,14 @@ and main buf =
    let s = buf.sedlex in
    match%sedlex s with
    | eof -> EOF |> locate buf
+
+   (* The commenting-out of entire s-expressions is handled at the parser level ... *)
+   | "#;" -> HASH_SEMI |> locate buf
+
+   (* ... while one-line comments are lexed as a single token ... *)
    | ';' -> comment buf
 
+   (* ... and block-comments swap into a custom lexing-mode to handle proper nesting. *)
    | "#|" ->
      buf.mode <- BlockComment 1;
      LEFT_COMMENT_DELIM |> locate buf
@@ -148,11 +154,9 @@ and main buf =
 
    | identifier -> IDENTIFIER (utf8 buf) |> locate buf
 
-   (* parenths *)
    | '(' -> LEFT_PAREN |> locate buf
    | ')' -> RIGHT_PAREN |> locate buf
 
-   (* YOUR TOKENS HERE... *)
    | _ ->
      match next buf.sedlex with
      | Some c -> illegal buf c
