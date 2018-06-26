@@ -25,10 +25,10 @@ let utf8 buf = Sedlexing.Utf8.lexeme buf.sedlex
 
 
 let error_of_exn = let open Location in function
-   | LexError (pos, msg) ->
-     let loc = { loc_start = pos; loc_end = pos; loc_ghost = false} in
-     Some { loc; msg; sub=[]; if_highlight=""; }
-   | _ -> None
+      | LexError (pos, msg) ->
+        let loc = { loc_start = pos; loc_end = pos; loc_ghost = false} in
+        Some { loc; msg; sub=[]; if_highlight=""; }
+      | _ -> None
 
 (** Register exceptions for pretty printing *)
 let pp_exceptions () =
@@ -93,20 +93,45 @@ let rec comment buf =
      COMMENT_LINE (utf8 buf) |> locate buf
    | _ -> unreachable "comment"
 
+(* Wow. This is a monstrosity. *)
 and block_comment depth buf =
    let s = buf.sedlex in
    match%sedlex s with
    | "|#" ->
      buf.mode <- (if depth = 1 then Main else BlockComment (depth - 1));
      RIGHT_COMMENT_DELIM |> locate buf
+
    | "#|" ->
      buf.mode <- BlockComment (depth + 1);
      LEFT_COMMENT_DELIM |> locate buf
+
    | '#', Compl '|'
-   | '|', Compl '#' -> COMMENT_CHUNK (utf8 buf) |> locate buf
-   | Plus (Compl ('#' | '|')) -> COMMENT_CHUNK (utf8 buf) |> locate buf
+   | '|', Compl '#'
+   | Plus (Compl ('#' | '|')) ->
+     let start, _ = sedlex_of_buffer buf |> Sedlexing.lexing_positions
+     and acc = Buffer.create 256 (* 3 lines of 80 chars = ~240 bytes *) in
+     Buffer.add_string acc (utf8 buf);
+     continuing_block_comment buf start acc
+
    | eof -> lexfail buf "Reached end-of-file without finding closing block-comment marker"
    | _ -> unreachable "block_comment"
+
+and continuing_block_comment buf start acc =
+   let s = buf.sedlex in
+   let _, curr = Sedlexing.lexing_positions s in
+   match%sedlex s with
+   | "|#"
+   | "#|" ->
+     Sedlexing.rollback s;
+     COMMENT_CHUNK (Buffer.contents acc), start, curr
+
+   | '#', Compl '|'
+   | '|', Compl '#'
+   | Plus (Compl ('#' | '|')) ->
+     Buffer.add_string acc (utf8 buf);
+     continuing_block_comment buf start acc
+
+   | _ -> unreachable "continuing_block_comment"
 
 and main buf =
    swallow_atmosphere buf;
@@ -235,7 +260,7 @@ let%test_module "Lexing" = (module struct
       | COMMENT_CHUNK _ -> true
       | _ -> false
 
-   let%expect_test "block comments are bracketed by delimiter tokens" =
+   let%expect_test "block-comments are bracketed by delimiter tokens" =
       let buf = lb "#| block comment |#" in
       token buf |> Token.show |> print_endline;
       token buf |> Token.show |> print_endline;
@@ -243,6 +268,17 @@ let%test_module "Lexing" = (module struct
       [%expect {|
          Token.LEFT_COMMENT_DELIM
          (Token.COMMENT_CHUNK " block comment ")
+         Token.RIGHT_COMMENT_DELIM
+      |}]
+
+   let%expect_test "block-comments support non-delimiter hashes and bars within" =
+      let buf = lb "#| block | # comment |#" in
+      token buf |> Token.show |> print_endline;
+      token buf |> Token.show |> print_endline;
+      token buf |> Token.show |> print_endline;
+      [%expect {|
+         Token.LEFT_COMMENT_DELIM
+         (Token.COMMENT_CHUNK " block | # comment ")
          Token.RIGHT_COMMENT_DELIM
       |}]
 end)
