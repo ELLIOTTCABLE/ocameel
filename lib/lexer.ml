@@ -113,7 +113,7 @@ and block_comment depth buf =
      Buffer.add_string acc (utf8 buf);
      continuing_block_comment buf start acc
 
-   | eof -> lexfail buf "Reached end-of-file without finding closing block-comment marker"
+   | eof -> lexfail buf "Reached end-of-file without finding a matching block-comment end-delimiter"
    | _ -> unreachable "block_comment"
 
 and continuing_block_comment buf start acc =
@@ -131,6 +131,7 @@ and continuing_block_comment buf start acc =
      Buffer.add_string acc (utf8 buf);
      continuing_block_comment buf start acc
 
+   | eof -> lexfail buf "Reached end-of-file without finding a matching block-comment end-delimiter"
    | _ -> unreachable "continuing_block_comment"
 
 and main buf =
@@ -143,7 +144,7 @@ and main buf =
    | "#|" ->
      buf.mode <- BlockComment 1;
      LEFT_COMMENT_DELIM |> locate buf
-   | "|#" -> lexfail buf "Unmatched block-comment close"
+   | "|#" -> lexfail buf "Unmatched block-comment end-delimiter"
 
    | identifier -> IDENTIFIER (utf8 buf) |> locate buf
 
@@ -189,6 +190,8 @@ let mode buf = buf.mode
 (* ---- --- ---- /!\ ---- --- ---- *)
 
 let%test_module "Lexing" = (module struct
+   let show_tokens = [%derive.show: Token.t list]
+
    (* {2 Helpers } *)
    let lb str = buffer_of_sedlex (Sedlexing.Utf8.from_string str)
 
@@ -280,5 +283,40 @@ let%test_module "Lexing" = (module struct
          Token.LEFT_COMMENT_DELIM
          (Token.COMMENT_CHUNK " block | # comment ")
          Token.RIGHT_COMMENT_DELIM
+      |}]
+
+   let%expect_test "block-comments can be nested" =
+      let buf = lb "#| nested #| block |# comment |#" in
+      tokens buf |> show_tokens |> print_endline;
+      [%expect {|
+         [Token.LEFT_COMMENT_DELIM; (Token.COMMENT_CHUNK " nested ");
+           Token.LEFT_COMMENT_DELIM; (Token.COMMENT_CHUNK " block ");
+           Token.RIGHT_COMMENT_DELIM; (Token.COMMENT_CHUNK " comment ");
+           Token.RIGHT_COMMENT_DELIM]
+      |}]
+
+   let%expect_test "block-comments throw a LexError if unbalanced" =
+      let buf = lb "#| nested #| block |# comment" in
+      token buf |> Token.show |> print_endline;
+      token buf |> Token.show |> print_endline;
+      token buf |> Token.show |> print_endline;
+      token buf |> Token.show |> print_endline;
+      token buf |> Token.show |> print_endline;
+      [%expect {|
+         Token.LEFT_COMMENT_DELIM
+         (Token.COMMENT_CHUNK " nested ")
+         Token.LEFT_COMMENT_DELIM
+         (Token.COMMENT_CHUNK " block ")
+         Token.RIGHT_COMMENT_DELIM
+      |}];
+
+      try token buf |> ignore with
+      | LexError _ as exn ->
+        match error_of_exn exn with
+        | None -> raise exn
+        | Some err -> Location.report_error Format.std_formatter err;
+      [%expect {|
+         File "", line 0, characters 29-29:
+         Error: Reached end-of-file without finding a matching block-comment end-delimiter
       |}]
 end)
