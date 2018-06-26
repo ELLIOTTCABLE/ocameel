@@ -54,22 +54,47 @@ let unreachable str =
    failwith (Printf.sprintf "Unreachable: %s" str)
 
 
-(** Regular expressions *)
+(* {2 Regular expressions } *)
 let newline = [%sedlex.regexp? "\r\n" | '\r' | '\n' ]
 
 (* TODO: I *could* crib JavaScript's definition of 'whitespace', expanding on Unicode category 'Zs'?
  *          <http://www.ecma-international.org/ecma-262/6.0/#table-32> *)
 let whitespace = [%sedlex.regexp? ' ' | newline ]
 
+(* {3 Numbers } *)
+let digit2 = [%sedlex.regexp? '0'..'1' ]
+let digit8 = [%sedlex.regexp? binary_digit | '2'..'7' ]
+let digit10 = [%sedlex.regexp? octal_digit | '8'..'9' ]
+let digit16 = [%sedlex.regexp? decimal_digit | 'A'..'F' | 'a'..'f' ]
+
+let sign = [%sedlex.regexp? "" | '+' | '-']
+let exactness = [%sedlex.regexp? Opt('#', Chars "eiEI") ]
+
+let radix10 = [%sedlex.regexp? Opt('#', Chars "dD") ]
+let prefix10 = [%sedlex.regexp? (exactness, radix10) | (radix10, exactness) ]
+let suffix10 = [%sedlex.regexp? Opt(Chars("esfdlESFDL"), sign, Plus digit10) ]
+let uinteger10 = [%sedlex.regexp? Plus(digit10), Star('#') ]
+let decimal10 = [%sedlex.regexp? uinteger10, suffix10 |
+                               '.', Plus(digit10), Star('#'), suffix10 |
+                               Plus(digit10), '.', Star(digit10), Star('#'), suffix10 |
+                               Plus(digit10), Plus('#'), '.', Star('#'), suffix10 ]
+let ureal10 = [%sedlex.regexp? uinteger10 | (uinteger10, '/', uinteger10) | decimal10 ]
+let real10 = [%sedlex.regexp? sign, ureal10 ]
+
+(* FIXME: NYI: lexing complexes *)
+let complex10 = [%sedlex.regexp? real10 ]
+
+(* FIXME: NYI: lexing non-base-10 numbers *)
+let num10 = [%sedlex.regexp? prefix10 ]
+
+let number = [%sedlex.regexp? num10 ]
+
+(* {3 Identifiers } *)
 (* FIXME: I'd really like to make this more multilingual, but I have no idea which Unicode
  *        categories or traits to use ... *)
-let binary_digit = [%sedlex.regexp? '0'..'1' ]
-let octal_digit = [%sedlex.regexp? binary_digit | '2'..'7' ]
-let decimal_digit = [%sedlex.regexp? octal_digit | '8'..'9' ]
-let hex_digit = [%sedlex.regexp? decimal_digit | 'A'..'F' | 'a'..'f' ]
 let letter = [%sedlex.regexp? 'A'..'Z' | 'a'..'z' ]
 
-let special_initial = [%sedlex.regexp? Chars "!$%&*/:<=>?^_~"]
+let special_initial = [%sedlex.regexp? Chars "!$%&*/:<=>?^_~" ]
 let initial = [%sedlex.regexp? letter | special_initial ]
 
 let special_subsequent = [%sedlex.regexp? Chars "+-.@" ]
